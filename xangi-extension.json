@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 2,
+  "id": "xangi-remote-desktop",
+  "displayName": "xangi-remote-desktop",
+  "description": "ブラウザから同じPCの画面を閲覧し、マウスとキーボードで操作します。",
+  "version": "0.1.0",
+  "entrypoint": "scripts/xangi-extension",
+  "runtime": {
+    "kind": "managed-http"
+  },
+  "permissions": [
+    "設定された同一PCのVNCサーバーへ接続し画面を表示する",
+    "接続した利用者のマウス・キーボード入力をVNCサーバーへ送信する"
+  ],
+  "setup": {
+    "instructions": "XANGI_SETUP.md"
+  },
+  "ui": {
+    "capability": "desktop.open",
+    "path": "/ui"
+  },
+  "capabilities": [
+    {
+      "id": "desktop.open",
+      "protocol": "http",
+      "healthPath": "/health"
+    }
+  ]
+}

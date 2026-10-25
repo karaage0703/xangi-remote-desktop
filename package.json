@@ -1,0 +1,22 @@
+{
+  "name": "xangi-remote-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/extension.mjs serve",
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node --test test/*.test.mjs",
+    "setup": "node scripts/registration.mjs setup",
+    "registration": "node scripts/registration.mjs"
+  },
+  "dependencies": {
+    "@novnc/novnc": "1.7.0",
+    "ws": "8.22.0"
+  }
+}
