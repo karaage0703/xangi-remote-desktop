@@ -1,0 +1,4 @@
+* text=auto
+*.mjs text eol=lf
+*.js text eol=lf
+scripts/xangi-extension text eol=lf
