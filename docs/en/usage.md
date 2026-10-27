@@ -39,7 +39,8 @@ Registration defaults to 30 days; no-expiry registration is optional. Browser co
 - Wayland: requires environment-specific validation. RDP-only servers are unsupported.
 - macOS: POSIX launcher provided; Screen Sharing and Apple authentication are unverified.
 - Windows: native launcher and hardware validation pending; WSL access to the host desktop is not assumed.
-- Safari/Firefox, IME, special keys, multiple displays, login/lock screens and UAC: unverified.
+- Mac Chrome as a client of Linux X11: limited keyboard validation described below. This does not validate macOS as the remote host.
+- Safari/Firefox, IME and special keys beyond the cases below, multiple displays, login/lock screens and UAC: unverified.
 
 Saved-auth supports classic VNC authentication under RFB 3.3/3.7/3.8 only. Manual certificate approval and credential fields beyond username/password are unsupported. Audio, file transfer, clipboard UI, resolution changes, automated OS setup, per-user control permissions and AI handoff are not included. The input toggle prevents accidents; it is not a server-enforced read-only permission. Restrict xangi access to authorized users.
 
@@ -48,3 +49,36 @@ Saved-auth supports classic VNC authentication under RFB 3.3/3.7/3.8 only. Manua
 If connection fails, check the VNC listener, port, credentials and other connected tabs. Doctor reports configuration readiness, not successful VNC authentication. If registration is not saved, check cookies and HTTPS settings. Some manual authentication methods require HTTPS/localhost for Web Crypto. For input, enable control and focus the desktop.
 
 To update, stop the extension, update source, run `npm ci` and `npm run build`, then start it; preserve `.env` and secrets. To remove, stop it and use `extension unlink xangi-remote-desktop`. Stop the separate VNC service yourself when no longer needed. No xangi host restart is required.
+
+## Mac keyboard input to Linux X11
+
+These findings apply to Mac Chrome → noVNC → x11vnc on an Ubuntu 24.04-based X11 host. They are environment-specific workarounds, not requirements for every OS or VNC server. They change the remote host's VNC configuration and OS packages, not extension code.
+
+### Shift failures or inverted letter case after Eisu
+
+Check the browser's Shift/Caps Lock state separately from the remote host's lock state. In the tested Japanese layout, `Eisu_toggle` shared a key position with Caps Lock. Sending the Mac Eisu (alphanumeric) key turned on remote Caps Lock. Pausing/resuming control or reloading the page did not prevent recurrence.
+
+The tested x11vnc configuration used:
+
+- Environment variable: `MODTWEAK_LOWEST=1`
+- Startup arguments: `-noxkb -remap Eisu_toggle-Muhenkan`
+
+`MODTWEAK_LOWEST=1` adjusts selection among duplicate key mappings, but did not prevent the Eisu-triggered recurrence by itself. The remap sends Eisu as Muhenkan (non-conversion), avoiding the unintended Caps Lock toggle. It changes Eisu's meaning; verify it with your IME and layout. `-noxkb` was retained from an earlier workaround for a crash during XKB processing. That crash's root cause remains unknown; this is not a universal recommendation.
+
+For a systemd-managed VNC server, put `Environment=MODTWEAK_LOWEST=1` in its `[Service]` section and add the required arguments to its existing `ExecStart`. The extension's `.env` does not configure a separate x11vnc service. Preserve DISPLAY, Xauthority, loopback binding and authentication, and back up the service definition first.
+
+Apply changes by restarting the VNC service, which disconnects viewers. Reload systemd definitions first if you edited the unit. No xangi host restart is required. Check and clear any existing remote Caps Lock state, reconnect, and repeatedly test Eisu → lowercase → Shift-uppercase → lowercase → Enter. This sequence and user testing from Mac showed improvement; long-term stability has not been established.
+
+### Japanese input in GTK4 applications
+
+A running Mozc engine does not ensure GTK4 integration is installed. In the tested environment, GTK3 converted Japanese while GTK4 retained Latin letters because `ibus-gtk4` was missing.
+
+```sh
+dpkg-query -W ibus-gtk4
+# If missing, run on the Ubuntu remote host:
+sudo apt-get install ibus-gtk4
+```
+
+After installation, a newly started GNOME Text Editor converted `ka` to `か` through noVNC. Save unsaved documents before restarting existing applications if needed. Keep the Mac input source on ABC and select Mozc hiragana input on the remote host. This does not validate sending text already composed by the Mac IME.
+
+**Remaining limitation:** Enter sometimes fails to confirm Japanese composition or insert a newline, or appears delayed. This remains unresolved; the user uses mouse selection as a workaround. Installing `ibus-gtk4` and fixing Eisu do not establish complete Japanese input support.
