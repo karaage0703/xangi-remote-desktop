@@ -1,3 +1,6 @@
+// A standalone server does not imply that its own root is the xangi host.
+const xangiHomeLink=document.querySelector('a[aria-label="xangiホーム"]');
+xangiHomeLink.hidden=!/^\/api\/extensions\/[^/]+\/(?:ui|service)(?:\/|$)/.test(location.pathname)||window.self!==window.top;
 import RFB from './vendor/novnc/core/rfb.js';
 
 const $ = id => document.getElementById(id);

@@ -50,3 +50,8 @@ dialog input { width: 100%; background: var(--bg); color: var(--ink); border: 1p
   .toolbar button { flex: 1 1 auto; }
   #desktop { height: max(300px, calc(100dvh - 330px)); }
 }
+
+/* Preserve dark controls when the host supplies a light appearance hint. */
+body { color-scheme: dark; }
+/* The host supplies shared Home while embedded. */
+:root[data-xangi-embedded="true"] a[aria-label="xangiホーム"] { display: none; }
